@@ -38,15 +38,15 @@ disabling that ring sound on C-g command. Use 'y' and 'n' as answers insead of y
 
 #+begin_src emacs-lisp :tangle "~/.config/emacs/early-init.el" :mkdirp yes
   (setq frame-resize-pixelwise t
-	frame-inhibit-implied-resize t
-	frame-title-format '("%b")
-	ring-bell-function 'ignore
-	use-dialog-box t
-	use-file-dialog nil
-	use-short-answers t
-	inhibit-splash-screen t
-	scroll-margin 0
-	)
+  	frame-inhibit-implied-resize t
+  	frame-title-format '("%b")
+  	ring-bell-function 'ignore
+  	use-dialog-box t
+  	use-file-dialog nil
+  	use-short-answers t
+  	inhibit-splash-screen t
+  	scroll-margin 0
+  	)
 
   (menu-bar-mode -1)
   (scroll-bar-mode -1)
@@ -67,7 +67,9 @@ disabling that ring sound on C-g command. Use 'y' and 'n' as answers insead of y
         kept-old-versions 2)
   (add-hook 'after-init-hook (lambda () (set-frame-name "Emacs@Denis")))
   (set-face-attribute 'default nil :font "Iosevka-13")                  
-  (add-to-list 'default-frame-alist '(fullscreen . maximized))    
+  (add-to-list 'default-frame-alist '(fullscreen . maximized))
+  (global-set-key [escape] 'keyboard-escape-quit)
+  (recentf-mode 1)
 #+end_src
 
 * Package manager bootstrap
@@ -139,7 +141,7 @@ Adjust garbage collection to improve startup times
     :ensure t
     :config
     (gcmh-mode 1)
-    :diminish (gcmh-mode . "Y"))
+    :diminish gcmh-mode )
 #+end_src
 
 ** All the icons
@@ -173,6 +175,7 @@ Snippets for every major mode. To <tab> expand snippet.
 
 #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
   (use-package yasnippet
+    :diminish yas-minor-mode
     :ensure t
     :config
     (yas-global-mode 1)
@@ -197,51 +200,32 @@ For showing available key ooptions after prefix key is pressed
     )
 #+end_src
 
-# ** Completion company
+** Completion
+*** Company
+ 
+ #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
+   (use-package company
+     :ensure t
+     :defer 2
+     :custom
+     (company-begin-commands '(self-insert-command))
+     (company-idle-delay .1)
+     (company-minimum-prefix-length 0)
+     (company-show-numbers t)
+     (company-tooltip-align-annotations 't)
+     (global-company-mode t)
+     :diminish company-mode
+     :bind(("C-S-SPC" . company-complete))
+     
+    )
 
-# #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
-#   (use-package company
-#     :ensure t
-#     :defer 2
-#     :custom
-#     (company-begin-commands '(self-insert-command))
-#     (company-idle-delay .1)
-#     (company-minimum-prefix-length 2)
-#     (company-show-numbers t)
-#     (company-tooltip-align-annotations 't)
-#     (global-company-mode t)
-#     :diminish company-mode
-#   )
-
-#   (use-package company-box
-#     :ensure t
-#     :after company
-#     :hook (company-mode . company-box-mode)
-#     :diminish company-box-mode
-#     )
+    (use-package company-box
+      :ensure t
+      :after company
+      :hook (company-mode . company-box-mode)
+      :diminish company-box-mode
+      )
 #+end_src
-
-# ** Helm
-
-# To bloated? Nah.
-
-# #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
-#   (use-package helm
-#     :ensure t
-#     :bind (("M-x" . helm-M-x)
-#            ("C-x b" . helm-mini)
-#            ("C-x C-f" . helm-find-files)
-#            ("C-x C-d" . helm-browse-project)
-#   	 ("C-h a" . helm-apropos)
-#   	 ("C-c f f" . helm-find)
-#   	 ("C-c f r" . helm-recentf)
-#            ("M-y" . helm-show-kill-ring))
-#     :config
-#     (helm-mode 1)
-#     (setq helm-M-x-fuzzy-match 1)
-#     (setq helm-buffers-fuzzy-matching 1)
-#     (setq helm-recentf-fuzzy-match 1))
-# #+end_src
 
 ** Vertico group
 *** Vertico
@@ -291,7 +275,7 @@ For showing available key ooptions after prefix key is pressed
 
 #+end_src
 
-*** Marginalia
+*** MarginVValia
 
 #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
 
@@ -387,7 +371,6 @@ For showing available key ooptions after prefix key is pressed
 
 #+end_src
 
-
 ** Flycheck
 
 Flywheel improved. Better error mesages at code
@@ -451,6 +434,18 @@ No config without fuzzy grep searchers included
     )
 #+end_src
 
+** Projectile
+
+#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
+  (use-package projectile
+    :diminish projectile-mode
+    :ensure t
+    :init
+    (projectile-mode +1)
+    :bind (:map projectile-mode-map
+                ("C-c p" . projectile-command-map)))
+#+end_src
+
 ** Org bullets
 
 #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
@@ -503,22 +498,52 @@ Never lose cursor on move actions
     )
 #+end_src
 
-** Smart mode line
-Prettier modeline
+** CMake mode
 
 #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
-  (use-package smart-mode-line
+  (use-package cmake-mode
     :ensure t
-    :init
-    (setq sml/no-confirm-load-theme t)
-    (setq sml/theme 'dark)
+  )
+
+  (use-package cmake-font-lock
+    :ensure t
+    :after cmake-mode
+  )
+#+end_src
+
+** Clang Format
+
+#+begin_src emacs-lisp :tangle  "~/.config/emacs/init.el" :mkdirp yes
+  (use-package clang-format
+    :ensure t
     :config
-    (sml/setup)
+    (setq clang-format-style "file")
+    (fset 'c-indent-region 'clang-format-region)
     )
+#+end_src
+* Custom functions
+
+#+begin_src emacs-lisp :tangle  "~/.config/emacs/init.el" :mkdirp yes
+
+   (defun scrl-up ()
+     "Scrolls up and recenter screen"
+     (interactive)
+     (scroll-up-command)
+     (recenter)
+    )
+    (global-set-key (kbd "C-v") 'scrl-up)
+
+    (defun scrl-down ()
+      "Scrolls down and recenter screen"
+      (interactive)
+     (scroll-down-command)
+     (recenter)
+    )
+    (global-set-key (kbd "M-v") 'scrl-down)
+     
 #+end_src
 
 * Color theme
-
 ** Eldritch theme definition
 
 Eldritch is a community-driven dark theme inspired by Lovecraftian horror.
