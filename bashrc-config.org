@@ -1,0 +1,82 @@
+#+TITLE: BASH Config
+#+AUTHOR: Denis Furmann
+#+DESCRIPTION: Literate config for Bash shell
+
+* BLE.SH source
+#+begin_src bash :tangle "~/.bashrc"
+  [[ $- == *i* ]] && source "$HOME/.local/share/blesh/ble.sh" --attach=none
+  
+#+end_src
+* Prompt theme
+** Colors definitions
+#+begin_src bash :tangle "~/.bashrc"
+COLOR_TEXT=$(tput setaf 189)  # Text
+COLOR_GREEN=$(tput setaf 150) # Green
+COLOR_PINK=$(tput setaf 218)  # Pink
+COLOR_SKY=$(tput setaf 117)   # Sky
+COLOR_MAUVE=$(tput setaf 141) # Mauve
+COLOR_PEACH=$(tput setaf 216) # Peach
+COLOR_YELLOW=$(tput setaf 222) # Yellow
+COLOR_TEAL=$(tput setaf 150)  # Teal
+COLOR_RESET=$(tput sgr0)      # Reset to default color
+#+end_src
+** Parts functions
+#+begin_src bash :tangle "~/.bashrc"
+  prompt_user_host() {
+      echo -n "${COLOR_GREEN}\u${COLOR_TEXT} on ${COLOR_SKY}\h"
+  }
+  prompt_working_directory() {
+      echo -n "${COLOR_MAUVE}\w"
+  }
+  prompt_git_branch() {
+        local branch
+        branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+        if [ -n "$branch" ]
+        then
+            echo -n " ${COLOR_GREEN}(${branch})"
+        fi
+  }
+  prompt_time() {
+        echo -n "\[\033[s\033[999C\033[15D\]${COLOR_PEACH}[\t]\[\033[u\]"
+  }
+#+end_src
+** Final prompt assembly
+#+begin_src bash :tangle "~/.bashrc"
+assemble_prompt() {
+    PS1="\n╭─$(prompt_user_host) ${COLOR_TEXT}at: $(prompt_working_directory)$(prompt_git_branch)$(prompt_time)\n${COLOR_RESET}╰─ $ "
+}
+PROMPT_COMMAND=assemble_prompt
+
+#+end_src
+* Plugins setups
+** FZF
+#+begin_src bash :tangle "~/.bashrc"
+if [ -f /usr/bin/fzf ]
+then
+  eval "$(fzf --bash)"
+else
+  echo "[INFO] fzf not installed!"
+fi
+#+end_src
+
+#+begin_src bash :tangle "~/.blerc"
+ble-import -d integration/fzf-completion
+ble-import -d integration/fzf-key-bindings
+#+end_src
+** Fastfetch
+#+begin_src bash :tangle "~/.bashrc" 
+  fastfetch
+#+end_src
+* Aliases
+#+begin_src bash :tangle "~/.bashrc"
+alias ls="exa --color=auto"
+alias la="exa -a --color=auto"
+alias ll="exa -lah --color=auto"
+alias update="sudo xbps-install -Su"
+alias pkgf="xbps-query -Rs"
+alias pkgi="sudo xbps-install"
+#+end_src
+* BLE.SH load
+#+begin_src bash :tangle "~/.bashrc"
+   [[ ${BLE_VERSION-} ]] && ble-attach
+#+end_src
