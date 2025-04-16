@@ -1,0 +1,21 @@
+# Template file for 'brave-browser-nightly'
+pkgname=brave-browser-nightly
+version=1.79.57
+revision=1
+archs="x86_64"
+hostmakedepends="rpmextract"
+short_desc="Better web browser"
+maintainer="Denis Furmann <Denis.Furmann@seznam.cz>"
+license="GPL-3.0-or-later"
+homepage="https://www.brave.com/"
+changelog="https://www.brave.com/latest/"
+distfiles="https://github.com/brave/brave-browser/releases/download/v${version}/brave-browser-nightly-${version}-1.x86_64.rpm"
+checksum=2294a0d33e14396e8ff2ce9e5144f9f964d5e35059d0ce418e6f486882128dd6
+
+do_install() {
+	rm -f etc/cron.dayly/brave-browser
+
+	vcopy "*" /
+
+	vmkdir usr/share/pixmaps
+}

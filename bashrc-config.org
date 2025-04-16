@@ -5,20 +5,19 @@
 * BLE.SH source
 #+begin_src bash :tangle "~/.bashrc"
   [[ $- == *i* ]] && source "$HOME/.local/share/blesh/ble.sh" --attach=none
-  
 #+end_src
 * Prompt theme
 ** Colors definitions
 #+begin_src bash :tangle "~/.bashrc"
-COLOR_TEXT=$(tput setaf 189)  # Text
-COLOR_GREEN=$(tput setaf 150) # Green
-COLOR_PINK=$(tput setaf 218)  # Pink
-COLOR_SKY=$(tput setaf 117)   # Sky
-COLOR_MAUVE=$(tput setaf 141) # Mauve
-COLOR_PEACH=$(tput setaf 216) # Peach
+COLOR_TEXT=$(tput setaf 189)   # Text
+COLOR_GREEN=$(tput setaf 150)  # Green
+COLOR_PINK=$(tput setaf 218)   # Pink
+COLOR_SKY=$(tput setaf 117)    # Sky
+COLOR_MAUVE=$(tput setaf 141)  # Mauve
+COLOR_PEACH=$(tput setaf 216)  # Peach
 COLOR_YELLOW=$(tput setaf 222) # Yellow
-COLOR_TEAL=$(tput setaf 150)  # Teal
-COLOR_RESET=$(tput sgr0)      # Reset to default color
+COLOR_TEAL=$(tput setaf 150)   # Teal
+COLOR_RESET=$(tput sgr0)       # Reset to default color
 #+end_src
 ** Parts functions
 #+begin_src bash :tangle "~/.bashrc"
@@ -58,23 +57,29 @@ else
   echo "[INFO] fzf not installed!"
 fi
 #+end_src
-
-#+begin_src bash :tangle "~/.blerc"
-ble-import -d integration/fzf-completion
-ble-import -d integration/fzf-key-bindings
-#+end_src
 ** Fastfetch
 #+begin_src bash :tangle "~/.bashrc" 
   fastfetch
 #+end_src
+** BAT
+#+begin_src bash :tangle "~/.bashrc"
+  export MANPAGER="sh -c 'sed -u -e \"s/\\x1B\[[0-9;]*m//g; s/.\\x08//g\" | bat -p -lman'"
+#+end_src
+
 * Aliases
 #+begin_src bash :tangle "~/.bashrc"
-alias ls="exa --color=auto"
-alias la="exa -a --color=auto"
-alias ll="exa -lah --color=auto"
-alias update="sudo xbps-install -Su"
-alias pkgf="xbps-query -Rs"
-alias pkgi="sudo xbps-install"
+  alias ls="eza --color=auto"
+  alias la="eza -la --color=auto --icons --group-directories-first --group"
+  alias ll="eza -l --color=auto --icons --group-directories-first --group"
+  alias xbpssu="sudo xbps-install -Su"
+  alias xbpsq="xbps-query -Rs"
+  alias xbpsi="sudo xbps-install"
+  alias ..="cd .."
+  alias ...="cd ../.."
+  alias ....="cd ../../.."
+  alias vi="vim"
+  alias fzf="fzf --style full --preview 'bat --color=always {}' --bind 'focus:transform-header:file --brief {}'"
+  alias cat="bat"
 #+end_src
 * BLE.SH load
 #+begin_src bash :tangle "~/.bashrc"
