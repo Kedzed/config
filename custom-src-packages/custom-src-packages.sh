@@ -1,15 +1,22 @@
 #!/usr/bin/bash
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-VOID_PKG_DIR="$HOME/void-packages"
+VOID_PKG_DIR="$HOME/.local/share"
 
 # Prepare void-packages folder
-cd "$VOID_PKG_DIR"
-if [ -d ~/void-packages ]
+if ! [ -d ${VOID_PKG_DIR} ]
 then
+    mkdir -p ${VOID_PKG_DIR}
+fi
+
+cd "$VOID_PKG_DIR"
+if [ -d ${VOID_PKG_DIR}/void-packages ]
+then
+    cd void-packages
     ./xbps-src bootstrap-update
 else
-    git clone https://github.com/void-linux/void-packages.git ~
+    git clone --depth=1 https://github.com/void-linux/void-packages.git
+    cd void-packages
     ./xbps-src binary-bootstrap
 fi
 
@@ -26,22 +33,23 @@ fi
 DISCORD_QUERY=$(xbps-query -s discord)
 if [ "$DISCORD_QUERY" == "" ]
 then
-./xbps-src pkg discord
-sudo xbps-install --repository hostdir/binpkgs/nonfree discord
+    cd "${VOID_PKG_DIR}/void-packages"
+    ./xbps-src pkg discord
+    sudo xbps-install --repository hostdir/binpkgs/nonfree discord
 fi
 
 ## Brave Browser Nightly
 BRAVE_EXIST=$(xbps-query -s brave-browser-nightly)
 if [ "$BRAVE_EXIST" == "" ] 
 then
-    if ! [ -d ~/void-packages/srcpkgs/brave-browser-nightly ]
+    if ! [ -d ${VOID_PKG_DIR}/void-packages/srcpkgs/brave-browser-nightly ]
     then
-	mkdir -p ~/void-packages/srcpkgs/brave-browser-nightly
+	mkdir -p ${VOID_PKG_DIR}/void-packages/srcpkgs/brave-browser-nightly
     fi
 
     cd "$SCRIPT_DIR"
-    cp -f ./xbps-templates/brave-browser-nightly/template ${VOID_PKG_DIR}/srcpkgs/brave-browser-nightly/template
-    cd "$VOID_PKG_DIR"
+    cp -f ./xbps-templates/brave-browser-nightly/template ${VOID_PKG_DIR}/void-packages/srcpkgs/brave-browser-nightly/template
+    cd "${VOID_PKG_DIR}/void-packages"
     ./xbps-src pkg brave-browser-nightly
     sudo xbps-install --repository hostdir/binpkgs brave-browser-nightly
 else
@@ -52,7 +60,7 @@ else
     then
 	cd "$SCRIPT_DIR"
 	cp -f ./xbps-templates/brave-browser-nightly/template ${VOID_PKG_DIR}/srcpkgs/brave-browser-nightly/template
-	cd "$VOID_PKG_DIR"
+	cd "${VOID_PKG_DIR}/void-packages"
 	./xbps-src pkg brave-browser-nightly
 	sudo xbps-remove brave-browser-nightly
 	sudo xbps-install --repository hostdir/binpkgs brave-browser-nightly

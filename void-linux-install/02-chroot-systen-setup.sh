@@ -1,0 +1,122 @@
+#!/bin/bash
+# Void Linux Full Disk Encryption Installation Script
+# ================================================================
+# This script performs a secure full disk encryption setup on a specified
+# drive using LUKS (LUKS1) and Btrfs subvolumes. The script also
+# configures GRUB with cryptodisk support, generates a keyfile for
+# automatic unlocking, and installs a collection of useful packages.
+#
+# Usage: sudo ./install-void-fde.sh
+#
+# WARNING: This will erase all data on the target drive!
+# ================================================================
+
+set -euo pipefail
+IFS=$'\n\t'
+source 00-variables-functions.sh
+
+
+#----------------------------------------
+# Preliminary Checks
+#----------------------------------------
+if [[ $EUID -ne 0 ]]; then
+    echo "This script must be run as root. Exiting."
+    exit 1
+fi
+
+#----------------------------------------
+# Install Base System and Necessary Tools
+#----------------------------------------
+# Root password
+passwd -l
+
+# Enable wheel group in sudoers
+sed -i 's/# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /etc/sudoers
+
+# Add normal user
+useradd -m denis
+usermod -aG wheel,audio,video,storage,network,input
+passwd denis
+
+#----------------------------------------
+# Change default shell
+#----------------------------------------
+chsh -s /bin/bash root
+
+#----------------------------------------
+# Hostname and locale settings
+#----------------------------------------
+# Hostname configuration
+echo "${HOSTNAME}" > /etc/hostname
+
+echo "127.0.0.1   localhost"                             >  /etc/hosts
+echo "::1         localhost"                             >> /etc/hosts
+echo "127.0.1.1   ${HOSTNAME}.localdomain ${HOSTNAME}"   >> /etc/hosts
+
+# Locale settings
+echo "${LOCALE} UTF-8" > /etc/default/libc-locales
+echo "LANG=${LOCALE}" > /etc/locale.conf
+
+#----------------------------------------
+# Luks drive related configs
+#----------------------------------------
+# LUKS keyfile generation and permissions
+dd bs=1 count=64 if=/dev/urandom of=${KEYFILE}
+chmod 000 ${KEYFILE}
+chmod -R g-rwx,o-rwx /boot
+
+# Add LUKS keyfile to container
+cryptsetup luksAddKey "/dev/mapper/${CRYPT_NAME}" ${KEYFILE}
+
+# Crypttab configuration
+echo "${CRYPT_NAME} UUID=$(blkid -s UUID -o value /dev/mapper/${CRYPT_NAME}) ${KEYFILE} luks" > /etc/crypttab
+
+#----------------------------------------
+# Fstab generation
+#----------------------------------------
+# EFI_UUID=$(blkid -s UUID -o value ${DRIVE}${PART_SUFFIX}1)
+
+# echo "/dev/mapper/${CRYPT_NAME}  /		 btrfs ${BTRFS_OPTS},subvol=@		         0 1" >  /etc/fstab
+# echo "/dev/mapper/${CRYPT_NAME}  /home	         btrfs ${BTRFS_OPTS},subvol=@home		 0 2" >> /etc/fstab
+# echo "/dev/mapper/${CRYPT_NAME}  /.snapshots	 btrfs ${BTRFS_OPTS},subvol=@snapshots	         0 2" >> /etc/fstab
+# echo "/dev/mapper/${CRYPT_NAME}  /var/cache	 btrfs ${BTRFS_OPTS},subvol=@var_cache	         0 2" >> /etc/fstab
+# echo "/dev/mapper/${CRYPT_NAME}  /var/cache/xbps btrfs ${BTRFS_OPTS},subvol=@var_cache_xbps	 0 2" >> /etc/fstab
+# echo "/dev/mapper/${CRYPT_NAME}  /var/tmp	 btrfs ${BTRFS_OPTS},subvol=@var_tmp	         0 2" >> /etc/fstab
+# echo "/dev/mapper/${CRYPT_NAME}  /var/srv	 btrfs ${BTRFS_OPTS},subvol=@var_srv	         0 2" >> /etc/fstab
+# echo "UUID=${EFI_UUID}           /boot/efi       vfat  defaults	                                 0 2" >> /etc/fstab
+
+#----------------------------------------
+# GRUB installation
+#----------------------------------------
+# GRUB cryptodisk and kernel parameters
+echo 'GRUB_ENABLE_CRYPTODISK=y' >> /etc/default/grub
+LUKS_UUID=$(blkid -s UUID -o value ${DRIVE}${PART_SUFFIX}2)
+sed -i "s|^GRUB_CMDLINE_LINUX_DEFAULT=.*|GRUB_CMDLINE_LINUX_DEFAULT=\"rd.luks.uuid=$LUKS_UUID\"|" /etc/default/grub
+
+# Include keyfile and crypttab in initramfs
+echo 'install_items+=\" /boot/volume.key /etc/crypttab \"' > /etc/dracut.conf.d/10-crypt.conf
+
+# Install GRUB and generate config
+grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=void
+grub-mkconfig -o /boot/grub/grub.cfg
+
+#----------------------------------------
+# Final packages and services 
+#----------------------------------------
+# Reconfigure all settings
+xbps-reconfigure -fa
+
+# Install other useful packages
+xbps-install -y "${ADDITIONAL_PKGS}"
+
+# Enable essential services
+ln -s /etc/sv/dbus		/var/service
+ln -s /etc/sv/udevd		/var/service
+ln -s /etc/sv/sshd		/var/service
+ln -s /etc/sv/sddm		/var/service
+ln -s /etc/sv/wpa_supplicant	/var/service
+ln -s /etc/sv/dhcpcd		/var/service
+ln -s /etc/sv/elogind		/var/service
+
+log "Installation complete. Please reboot into your new Void Linux system."
+
