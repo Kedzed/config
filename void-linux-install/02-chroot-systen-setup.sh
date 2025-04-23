@@ -77,7 +77,10 @@ cryptsetup luksAddKey "${DRIVE}${PART_SUFFIX}2" ${KEYFILE}
 
 # Crypttab configuration
 log "Setting the Crypttab with keyfile"
-echo "${CRYPT_NAME} UUID=$(blkid -s UUID -o value /dev/mapper/${CRYPT_NAME}) ${KEYFILE} luks" > /etc/crypttab
+UEFI_UUID=$(blkid -s UUID -o value ${DRIVE}${PART_SUFFIX}1)
+LUKS_UUID=$(blkid -s UUID -o value ${DRIVE}${PART_SUFFIX}2)
+ROOT_UUID=$(blkid -s UUID -o value ${MAPPER_PATH})
+echo "${CRYPT_NAME} UUID=${LUKS_UUID} ${KEYFILE} luks" > /etc/crypttab
 
 #----------------------------------------
 # Fstab generation
@@ -99,15 +102,15 @@ echo "${CRYPT_NAME} UUID=$(blkid -s UUID -o value /dev/mapper/${CRYPT_NAME}) ${K
 # GRUB cryptodisk and kernel parameters
 log "Preparing GRUB instalation with encrypted disk"
 echo 'GRUB_ENABLE_CRYPTODISK=y' >> /etc/default/grub
-LUKS_UUID=$(blkid -s UUID -o value ${DRIVE}${PART_SUFFIX}2)
-sed -i "s|^GRUB_CMDLINE_LINUX_DEFAULT=.*|GRUB_CMDLINE_LINUX_DEFAULT=\"rd.luks.uuid=$LUKS_UUID\"|" /etc/default/grub
+sed -i 's|^GRUB_CMDLINE_LINUX_DEFAULT=.*|GRUB_CMDLINE_LINUX_DEFAULT="loglevel=4 rd.auto=1 rd.luks.allow-discards rd.luks.uuid=$LUKS_UUID"|' /etc/default/grub
 
 # Include keyfile and crypttab in initramfs
-echo 'install_items+=\" /boot/volume.key /etc/crypttab \"' > /etc/dracut.conf.d/10-crypt.conf
+echo 'install_items+=" ${KEYFILE} /etc/crypttab "' > /etc/dracut.conf.d/10-crypt.conf
+ln -sf /etc/sv/dhc /etc/runit/runsvdir/default
 
 # Install GRUB and generate config
 log "Installing GRUB"
-grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=void
+grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=Void
 grub-mkconfig -o /boot/grub/grub.cfg
 
 #----------------------------------------
@@ -119,17 +122,18 @@ xbps-reconfigure -fa
 
 # Install other useful packages
 log "Installing additional packages"
-xbps-install -y "${ADDITIONAL_PKGS}"
+xbps-install -Su
+xbps-install -y "${ADDITIONAL_PKGS[@]}"
 
 # Enable essential services
 log "Linking essential services"
-ln -s /etc/sv/dbus		/var/service
-ln -s /etc/sv/udevd		/var/service
-ln -s /etc/sv/sshd		/var/service
-ln -s /etc/sv/sddm		/var/service
-ln -s /etc/sv/wpa_supplicant	/var/service
-ln -s /etc/sv/dhcpcd		/var/service
-ln -s /etc/sv/elogind		/var/service
+ln -sf /etc/sv/dbus		/var/service
+ln -sf /etc/sv/udevd		/var/service
+ln -sf /etc/sv/sshd		/var/service
+ln -sf /etc/sv/sddm		/var/service
+ln -sf /etc/sv/wpa_supplicant	/var/service
+ln -sf /etc/sv/dhcpcd		/var/service
+ln -sf /etc/sv/elogind		/var/service
 
 log "Installation complete. Please reboot into your new Void Linux system."
 

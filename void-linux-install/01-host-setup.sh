@@ -80,8 +80,10 @@ log "Btrfs subvolumes created successfully."
 # Mount Subvolumes and EFI
 #----------------------------------------
 log "Mounting subvolumes and EFI partition..."
-mkdir -p "${MOUNTPOINT}"/{boot/efi,home,.snapshots,var/cache/xbps,var/tmp,srv}
 mount -o ${BTRFS_OPTS},subvol=@               "${MAPPER_PATH}" "${MOUNTPOINT}"
+
+mkdir -p "${MOUNTPOINT}"/{boot/efi,home,.snapshots,var/cache/xbps,var/tmp,srv}
+
 mount -o ${BTRFS_OPTS},subvol=@home           "${MAPPER_PATH}" "${MOUNTPOINT}/home"
 mount -o ${BTRFS_OPTS},subvol=@snapshots      "${MAPPER_PATH}" "${MOUNTPOINT}/.snapshots"
 mount -o ${BTRFS_OPTS},subvol=@var_cache_xbps "${MAPPER_PATH}" "${MOUNTPOINT}/var/cache/xbps"
@@ -94,6 +96,10 @@ log "All partitions and subvolumes mounted."
 # Install Base System and Necessary Tools
 #----------------------------------------
 log "Installing base system and essential packages..."
+
+mkdir -p /mnt/var/db/xbps/keys
+cp /var/db/xbps/keys/* /mnt/var/db/xbps/keys/
+
 xbps-install -Sy -R "${REPO_URL}" -r "${MOUNTPOINT}" \
     base-system grub-x86_64-efi cryptsetup btrfs-progs emacs
 
@@ -104,12 +110,15 @@ log "Base system instaleld"
 # Generate fstab
 #----------------------------------------
 log "Generating fstab"
-xgenfstab "${MOUNTPOINT}" > "${MOUNTPOINT}/etc/fstab"
+xgenfstab -U "${MOUNTPOINT}" > "${MOUNTPOINT}/etc/fstab"
 
 #----------------------------------------
 # Prepare chroot scripts
 #----------------------------------------
 cp "${SCRIPT_DIR}/*" "${MOUNTPOINT}/tmp/"
+echo "DEBUG: Script dir: $SCRIPT_DIR"
+echo "DEBUG: ls script_dir/*:"
+ls ${SCRIPT_DIR}/
 
 log "Chroot prepared in ${MOUNTPOINT} directory"
 log "To chroot to system execute xchroot ${MOUNTPOINT} /tmp/02-chroot-system-setup.sh"
