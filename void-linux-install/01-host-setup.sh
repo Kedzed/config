@@ -116,9 +116,9 @@ xgenfstab -U "${MOUNTPOINT}" > "${MOUNTPOINT}/etc/fstab"
 # Prepare chroot scripts
 #----------------------------------------
 cp "${SCRIPT_DIR}/*" "${MOUNTPOINT}/tmp/"
-echo "DEBUG: Script dir: $SCRIPT_DIR"
-echo "DEBUG: ls script_dir/*:"
-ls ${SCRIPT_DIR}/
+log "DEBUG: Script dir: $SCRIPT_DIR"
+log "DEBUG: ls ${SCRIPT_DIR}/*:"
+ls "${SCRIPT_DIR}/"
 
 log "Chroot prepared in ${MOUNTPOINT} directory"
-log "To chroot to system execute xchroot ${MOUNTPOINT} /tmp/02-chroot-system-setup.sh"
+log "To chroot to system execute xchroot ${MOUNTPOINT} /bin/bash -c /tmp/02-chroot-system-setup.sh"

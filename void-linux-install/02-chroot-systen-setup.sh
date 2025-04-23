@@ -102,10 +102,10 @@ echo "${CRYPT_NAME} UUID=${LUKS_UUID} ${KEYFILE} luks" > /etc/crypttab
 # GRUB cryptodisk and kernel parameters
 log "Preparing GRUB instalation with encrypted disk"
 echo 'GRUB_ENABLE_CRYPTODISK=y' >> /etc/default/grub
-sed -i 's|^GRUB_CMDLINE_LINUX_DEFAULT=.*|GRUB_CMDLINE_LINUX_DEFAULT="loglevel=4 rd.auto=1 rd.luks.allow-discards rd.luks.uuid=$LUKS_UUID"|' /etc/default/grub
+sed -i "s|^GRUB_CMDLINE_LINUX_DEFAULT=.*|GRUB_CMDLINE_LINUX_DEFAULT=\"loglevel=4 rd.auto=1 rd.luks.allow-discards rd.luks.uuid=${LUKS_UUID}\"|" /etc/default/grub
 
 # Include keyfile and crypttab in initramfs
-echo 'install_items+=" ${KEYFILE} /etc/crypttab "' > /etc/dracut.conf.d/10-crypt.conf
+echo "install_items+=\" ${KEYFILE} /etc/crypttab \"" > /etc/dracut.conf.d/10-crypt.conf
 ln -sf /etc/sv/dhc /etc/runit/runsvdir/default
 
 # Install GRUB and generate config
