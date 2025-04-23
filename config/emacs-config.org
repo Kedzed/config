@@ -450,6 +450,7 @@ Enable rich annotations using the Marginalia package
  :ensure t
  :hook (org-mode . org-bullets-mode))
 (use-package expand-region :ensure t :bind (("C-=" . er/expand-region)))
+(use-package magit :ensure t)
 #+end_src
 
 * Custom functions
