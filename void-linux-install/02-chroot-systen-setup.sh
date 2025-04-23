@@ -28,25 +28,29 @@ fi
 # Install Base System and Necessary Tools
 #----------------------------------------
 # Root password
-passwd -l
+log "Setting root password"
+passwd
 
 # Enable wheel group in sudoers
 sed -i 's/# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /etc/sudoers
 
 # Add normal user
+log "Setting user password"
 useradd -m denis
-usermod -aG wheel,audio,video,storage,network,input
+usermod -aG wheel,audio,video,storage,network,input,kvm denis
 passwd denis
 
 #----------------------------------------
 # Change default shell
 #----------------------------------------
+log "Setting system default shell"
 chsh -s /bin/bash root
 
 #----------------------------------------
 # Hostname and locale settings
 #----------------------------------------
 # Hostname configuration
+log "Setting hostname to: $HOSTNAME"
 echo "${HOSTNAME}" > /etc/hostname
 
 echo "127.0.0.1   localhost"                             >  /etc/hosts
@@ -54,6 +58,7 @@ echo "::1         localhost"                             >> /etc/hosts
 echo "127.0.1.1   ${HOSTNAME}.localdomain ${HOSTNAME}"   >> /etc/hosts
 
 # Locale settings
+log "Setting locale to: $LOCALE"
 echo "${LOCALE} UTF-8" > /etc/default/libc-locales
 echo "LANG=${LOCALE}" > /etc/locale.conf
 
@@ -61,14 +66,17 @@ echo "LANG=${LOCALE}" > /etc/locale.conf
 # Luks drive related configs
 #----------------------------------------
 # LUKS keyfile generation and permissions
+log "Creating key key file"
 dd bs=1 count=64 if=/dev/urandom of=${KEYFILE}
 chmod 000 ${KEYFILE}
 chmod -R g-rwx,o-rwx /boot
 
 # Add LUKS keyfile to container
-cryptsetup luksAddKey "/dev/mapper/${CRYPT_NAME}" ${KEYFILE}
+log "Adding keyfile to drive"
+cryptsetup luksAddKey "${DRIVE}${PART_SUFFIX}2" ${KEYFILE}
 
 # Crypttab configuration
+log "Setting the Crypttab with keyfile"
 echo "${CRYPT_NAME} UUID=$(blkid -s UUID -o value /dev/mapper/${CRYPT_NAME}) ${KEYFILE} luks" > /etc/crypttab
 
 #----------------------------------------
@@ -89,6 +97,7 @@ echo "${CRYPT_NAME} UUID=$(blkid -s UUID -o value /dev/mapper/${CRYPT_NAME}) ${K
 # GRUB installation
 #----------------------------------------
 # GRUB cryptodisk and kernel parameters
+log "Preparing GRUB instalation with encrypted disk"
 echo 'GRUB_ENABLE_CRYPTODISK=y' >> /etc/default/grub
 LUKS_UUID=$(blkid -s UUID -o value ${DRIVE}${PART_SUFFIX}2)
 sed -i "s|^GRUB_CMDLINE_LINUX_DEFAULT=.*|GRUB_CMDLINE_LINUX_DEFAULT=\"rd.luks.uuid=$LUKS_UUID\"|" /etc/default/grub
@@ -97,6 +106,7 @@ sed -i "s|^GRUB_CMDLINE_LINUX_DEFAULT=.*|GRUB_CMDLINE_LINUX_DEFAULT=\"rd.luks.uu
 echo 'install_items+=\" /boot/volume.key /etc/crypttab \"' > /etc/dracut.conf.d/10-crypt.conf
 
 # Install GRUB and generate config
+log "Installing GRUB"
 grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=void
 grub-mkconfig -o /boot/grub/grub.cfg
 
@@ -104,12 +114,15 @@ grub-mkconfig -o /boot/grub/grub.cfg
 # Final packages and services 
 #----------------------------------------
 # Reconfigure all settings
+log "Locale reconfiguration"
 xbps-reconfigure -fa
 
 # Install other useful packages
+log "Installing additional packages"
 xbps-install -y "${ADDITIONAL_PKGS}"
 
 # Enable essential services
+log "Linking essential services"
 ln -s /etc/sv/dbus		/var/service
 ln -s /etc/sv/udevd		/var/service
 ln -s /etc/sv/sshd		/var/service

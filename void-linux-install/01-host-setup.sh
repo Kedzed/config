@@ -36,20 +36,13 @@ fi
 #----------------------------------------
 log "Partitioning ${DRIVE}..."
 
-# Zap existing partition table
-echo '' | sfdisk --wipe always --label gpt "${DRIVE}"
-
 # Define the partitions using a scriptable input format
-# 1. Partition EFI system - 512MiB
-# 2. Partition Linux filesystem - rest
-sfdisk "${DRIVE}" << EOF
-1MiB,+512MiB,ef00
-,0,8300
+# 1. Partition EFI system	- 512MiB - GUID alias 'U'
+# 2. Partition Linux filesystem - rest   - GUID alias 'L'
+sfdisk --wipe always --label gpt "${DRIVE}" << EOF
+1M,512M,U
+,+,L
 EOF
-
-xbps-install -y parted
-parted "${DRIVE}" --script name 1 "EFI System Partition"
-parted "${DRIVE}" --script name 2 "Linux filesystem"
 
 log "Partitioning complete: ${DRIVE}${PART_SUFFIX}1 (EFI), ${DRIVE}${PART_SUFFIX}2 (LUKS)."
 
@@ -77,10 +70,9 @@ mount                  "${MAPPER_PATH}" "${MOUNTPOINT}"
 btrfs subvolume create "${MOUNTPOINT}/@"
 btrfs subvolume create "${MOUNTPOINT}/@home"
 btrfs subvolume create "${MOUNTPOINT}/@snapshots"
-btrfs subvolume create "${MOUNTPOINT}/@var_cache"
 btrfs subvolume create "${MOUNTPOINT}/@var_cache_xbps"
 btrfs subvolume create "${MOUNTPOINT}/@var_tmp"
-btrfs subvolume create "${MOUNTPOINT}/@var_srv"
+btrfs subvolume create "${MOUNTPOINT}/@srv"
 umount                 "${MOUNTPOINT}"
 log "Btrfs subvolumes created successfully."
 
@@ -88,14 +80,13 @@ log "Btrfs subvolumes created successfully."
 # Mount Subvolumes and EFI
 #----------------------------------------
 log "Mounting subvolumes and EFI partition..."
-mkdir -p "${MOUNTPOINT}"/{boot/efi,home,.snapshots,var/cache/xbps,var/tmp,var/srv}
+mkdir -p "${MOUNTPOINT}"/{boot/efi,home,.snapshots,var/cache/xbps,var/tmp,srv}
 mount -o ${BTRFS_OPTS},subvol=@               "${MAPPER_PATH}" "${MOUNTPOINT}"
 mount -o ${BTRFS_OPTS},subvol=@home           "${MAPPER_PATH}" "${MOUNTPOINT}/home"
 mount -o ${BTRFS_OPTS},subvol=@snapshots      "${MAPPER_PATH}" "${MOUNTPOINT}/.snapshots"
-mount -o ${BTRFS_OPTS},subvol=@var_cache      "${MAPPER_PATH}" "${MOUNTPOINT}/var/cache"
 mount -o ${BTRFS_OPTS},subvol=@var_cache_xbps "${MAPPER_PATH}" "${MOUNTPOINT}/var/cache/xbps"
 mount -o ${BTRFS_OPTS},subvol=@var_tmp        "${MAPPER_PATH}" "${MOUNTPOINT}/var/tmp"
-mount -o ${BTRFS_OPTS},subvol=@var_srv        "${MAPPER_PATH}" "${MOUNTPOINT}/var/srv"
+mount -o ${BTRFS_OPTS},subvol=@srv            "${MAPPER_PATH}" "${MOUNTPOINT}/srv"
 mount "${DRIVE}${PART_SUFFIX}1" "${MOUNTPOINT}/boot/efi"
 log "All partitions and subvolumes mounted."
 
@@ -104,14 +95,7 @@ log "All partitions and subvolumes mounted."
 #----------------------------------------
 log "Installing base system and essential packages..."
 xbps-install -Sy -R "${REPO_URL}" -r "${MOUNTPOINT}" \
-    base-system grub-x86_64-efi cryptsetup btrfs-progs
-log "Base system installed."
-
-# Bind mount for chroot environment
-# for dir in dev proc sys run; do
-#     mount --rbind /$dir "${MOUNTPOINT}/$dir"
-#     mount --make-rslave "${MOUNTPOINT}/$dir"
-# done
+    base-system grub-x86_64-efi cryptsetup btrfs-progs emacs
 
 cp /etc/resolv.conf "${MOUNTPOINT}/etc/"
 log "Base system instaleld"
@@ -119,14 +103,13 @@ log "Base system instaleld"
 #----------------------------------------
 # Generate fstab
 #----------------------------------------
-xgenfstab "${MOUNTPOINT}" "${MOUNTPOINT}/etc/fstab"
-xgenfstab /mnt > /mnt/etc/fstab
+log "Generating fstab"
+xgenfstab "${MOUNTPOINT}" > "${MOUNTPOINT}/etc/fstab"
 
 #----------------------------------------
 # Prepare chroot scripts
 #----------------------------------------
-cp "${SCRIPT_DIR}/00-variables-functions.sh" "${MOUNTPOINT}/tmp/"
-cp "${SCRIPT_DIR}/02-chroot-system-setup.sh" "${MOUNTPOINT}/tmp/"
+cp "${SCRIPT_DIR}/*" "${MOUNTPOINT}/tmp/"
 
 log "Chroot prepared in ${MOUNTPOINT} directory"
 log "To chroot to system execute xchroot ${MOUNTPOINT} /tmp/02-chroot-system-setup.sh"
