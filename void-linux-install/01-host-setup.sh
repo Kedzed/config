@@ -35,9 +35,22 @@ fi
 # Partition the Drive
 #----------------------------------------
 log "Partitioning ${DRIVE}..."
-sgdisk -Z "${DRIVE}"    # Zap existing partition table
-sgdisk -n1:1MiB:+512MiB -t1:ef00 -c1:"EFI System Partition" "${DRIVE}"
-sgdisk -n2:0:0          -t2:8300 -c2:"Linux filesystem" "${DRIVE}"
+
+# Zap existing partition table
+echo '' | sfdisk --wipe always --label gpt "${DRIVE}"
+
+# Define the partitions using a scriptable input format
+# 1. Partition EFI system - 512MiB
+# 2. Partition Linux filesystem - rest
+sfdisk "${DRIVE}" << EOF
+1MiB,+512MiB,ef00
+,0,8300
+EOF
+
+xbps-install -y parted
+parted "${DRIVE}" --script name 1 "EFI System Partition"
+parted "${DRIVE}" --script name 2 "Linux filesystem"
+
 log "Partitioning complete: ${DRIVE}${PART_SUFFIX}1 (EFI), ${DRIVE}${PART_SUFFIX}2 (LUKS)."
 
 #----------------------------------------
