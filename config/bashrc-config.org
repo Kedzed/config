@@ -77,7 +77,8 @@ fi
   alias ..="cd .."
   alias ...="cd ../.."
   alias ....="cd ../../.."
-  alias vi="vim"
+  alias vi="emacs -nw"
+  alias vim="emacs"
   alias fzf="fzf --style full --preview 'bat --color=always {}' --bind 'focus:transform-header:file --brief {}'"
   alias cat="bat"
 #+end_src

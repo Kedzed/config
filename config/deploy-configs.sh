@@ -13,6 +13,12 @@ then
 
     # Sway
     emacs --batch --eval "(require 'org)" --eval '(org-babel-tangle-file "sway-config.org")'
+
+    # Hyprland
+    emacs --batch --eval "(require 'org)" --eval '(org-babel-tangle-file "hyprland-config.org")'
+
+    # Waybar
+    emacs --batch --eval "(require 'org)" --eval '(org-babel-tangle-file "waybar-config.org")'
 else
     echo "[ERROR] Missing emacs to tangle configs!"
 fi
