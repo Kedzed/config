@@ -103,7 +103,7 @@ cp /var/db/xbps/keys/* /mnt/var/db/xbps/keys/
 xbps-install -Sy -R "${REPO_URL}" -r "${MOUNTPOINT}" \
     base-system xtools grub-x86_64-efi cryptsetup btrfs-progs emacs
 
-cp /etc/resolv.conf "${MOUNTPOINT}/etc/"
+cp /etc/resolv.conf "${MOUNTPOINT}/etc/resolv.conf"
 log "Base system instaleld"
 
 #----------------------------------------
@@ -115,7 +115,10 @@ xgenfstab -U "${MOUNTPOINT}" > "${MOUNTPOINT}/etc/fstab"
 #----------------------------------------
 # Prepare chroot scripts
 #----------------------------------------
-cp "${SCRIPT_DIR}/*" "${MOUNTPOINT}/tmp/"
+cp "00-variables-functions.sh" "${MOUNTPOINT}/tmp/"
+cp "01-host-setup.sh" "${MOUNTPOINT}/tmp/"
+cp "02-chroot-systen-setup.sh" "${MOUNTPOINT}/tmp/"
+
 log "DEBUG: Script dir: $SCRIPT_DIR"
 log "DEBUG: ls ${SCRIPT_DIR}/*:"
 ls "${SCRIPT_DIR}/"

@@ -106,11 +106,11 @@ sed -i "s|^GRUB_CMDLINE_LINUX_DEFAULT=.*|GRUB_CMDLINE_LINUX_DEFAULT=\"loglevel=4
 
 # Include keyfile and crypttab in initramfs
 echo "install_items+=\" ${KEYFILE} /etc/crypttab \"" > /etc/dracut.conf.d/10-crypt.conf
-ln -sf /etc/sv/dhc /etc/runit/runsvdir/default
+ln -s /etc/sv/dhc /etc/runit/runsvdir/default
 
 # Install GRUB and generate config
 log "Installing GRUB"
-grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=Void
+grub-install --target=x86_64-efi --efi-directory=/boot/efi --removable --bootloader-id=Void
 grub-mkconfig -o /boot/grub/grub.cfg
 
 #----------------------------------------
@@ -120,20 +120,23 @@ grub-mkconfig -o /boot/grub/grub.cfg
 log "Locale reconfiguration"
 xbps-reconfigure -fa
 
+# Add nonfree repo
+xbps-install -Sy void-repo-nonfree
+xbps-install -S
+
 # Sound packages
 xbps-install -y alsa-utils alsa-plugins-pulseaudio apulse pipewire alsa-pipewire libjack-pipewire pulseaudio pavucontrol
 mkdir -p /etc/pipewire/pipewire.conf.d
-ln -sf /usr/share/examples/wireplumber/10-wireplumber.conf /etc/pipewire/pipewire.conf.d/
-ln -sf /usr/share/examples/pipewire/20-pipewire-pulse.conf /etc/pipewire/pipewire.conf.d/
+ln -s /usr/share/examples/wireplumber/10-wireplumber.conf /etc/pipewire/pipewire.conf.d/
+ln -s /usr/share/examples/pipewire/20-pipewire-pulse.conf /etc/pipewire/pipewire.conf.d/
 
 mkdir -p /etc/alsa/conf.d
-ln -sf /usr/share/alsa/alsa.conf.d/50-pipewire.conf /etc/alsa/conf.d
-ln -sf /usr/share/alsa/alsa.conf.d/99-pipewire-default.conf /etc/alsa/conf.d
+ln -s /usr/share/alsa/alsa.conf.d/50-pipewire.conf /etc/alsa/conf.d
+ln -s /usr/share/alsa/alsa.conf.d/99-pipewire-default.conf /etc/alsa/conf.d
 
 # Window Managers
 echo repository=https://raw.githubusercontent.com/Makrennel/hyprland-void/repository-x86_64-glibc | sudo tee /etc/xbps.d/hyprland-void.conf
-xbps-instal -S
-xbps-install hyprland xdg-desktop-portal-hyprland xdg-desktop-portal-gtk hyprpaper hypridle hyprlock waybar wlogout
+xbps-install -Sy hyprland xdg-desktop-portal-hyprland xdg-desktop-portal-gtk hyprpaper hypridle hyprlock Waybar wlogout
 
 # Install other useful packages
 log "Installing additional packages"
@@ -142,15 +145,14 @@ xbps-install -y "${ADDITIONAL_PKGS[@]}"
 
 # Enable essential services
 log "Linking essential services"
-ln -sf /etc/sv/dbus		/var/service
-ln -sf /etc/sv/udevd		/var/service
+# ln -sf /etc/sv/dbus		/var/service
+# ln -sf /etc/sv/udevd		/var/service
 # ln -sf /etc/sv/sshd		/var/service
 # ln -sf /etc/sv/sddm		/var/service
-ln -sf /etc/sv/wpa_supplicant	/var/service
-ln -sf /etc/sv/dhcpcd		/var/service
-ln -sf /etc/sv/elogind		/var/service
-ln -sf /etc/sv/alsa             /var/service
-
+# ln -sf /etc/sv/wpa_supplicant	/var/service
+# ln -sf /etc/sv/dhcpcd		/var/service
+# ln -sf /etc/sv/elogind	/var/service
+# ln -sf /etc/sv/alsa           /var/service
 
 
 log "Installation complete. Please reboot into your new Void Linux system."
