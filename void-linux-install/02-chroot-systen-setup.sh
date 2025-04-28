@@ -120,6 +120,10 @@ grub-mkconfig -o /boot/grub/grub.cfg
 log "Locale reconfiguration"
 xbps-reconfigure -fa
 
+# Add nonfree repo
+xbps-install -Sy void-repo-nonfree
+xbps-install -S
+
 # Sound packages
 xbps-install -y alsa-utils alsa-plugins-pulseaudio apulse pipewire alsa-pipewire libjack-pipewire pulseaudio pavucontrol
 mkdir -p /etc/pipewire/pipewire.conf.d
@@ -132,8 +136,7 @@ ln -s /usr/share/alsa/alsa.conf.d/99-pipewire-default.conf /etc/alsa/conf.d
 
 # Window Managers
 echo repository=https://raw.githubusercontent.com/Makrennel/hyprland-void/repository-x86_64-glibc | sudo tee /etc/xbps.d/hyprland-void.conf
-xbps-instal -S
-xbps-install -y hyprland xdg-desktop-portal-hyprland xdg-desktop-portal-gtk hyprpaper hypridle hyprlock Waybar wlogout
+xbps-install -Sy hyprland xdg-desktop-portal-hyprland xdg-desktop-portal-gtk hyprpaper hypridle hyprlock Waybar wlogout
 
 # Install other useful packages
 log "Installing additional packages"
