@@ -101,7 +101,7 @@ mkdir -p /mnt/var/db/xbps/keys
 cp /var/db/xbps/keys/* /mnt/var/db/xbps/keys/
 
 xbps-install -Sy -R "${REPO_URL}" -r "${MOUNTPOINT}" \
-    base-system xtools grub-x86_64-efi cryptsetup btrfs-progs emacs
+    base-system xtools grub-x86_64-efi cryptsetup btrfs-progs
 
 cp /etc/resolv.conf "${MOUNTPOINT}/etc/resolv.conf"
 log "Base system instaleld"

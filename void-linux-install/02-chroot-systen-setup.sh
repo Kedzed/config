@@ -106,7 +106,7 @@ sed -i "s|^GRUB_CMDLINE_LINUX_DEFAULT=.*|GRUB_CMDLINE_LINUX_DEFAULT=\"loglevel=4
 
 # Include keyfile and crypttab in initramfs
 echo "install_items+=\" ${KEYFILE} /etc/crypttab \"" > /etc/dracut.conf.d/10-crypt.conf
-ln -s /etc/sv/dhc /etc/runit/runsvdir/default
+ln -s /etc/sv/dhc /etc/runit/runsvdir/default/
 
 # Install GRUB and generate config
 log "Installing GRUB"
@@ -136,7 +136,7 @@ ln -s /usr/share/alsa/alsa.conf.d/99-pipewire-default.conf /etc/alsa/conf.d
 
 # Window Managers
 echo repository=https://raw.githubusercontent.com/Makrennel/hyprland-void/repository-x86_64-glibc | sudo tee /etc/xbps.d/hyprland-void.conf
-xbps-install -Sy hyprland xdg-desktop-portal-hyprland xdg-desktop-portal-gtk hyprpaper hypridle hyprlock Waybar wlogout
+xbps-install -Sy hyprland xdg-desktop-portal-hyprland xdg-desktop-portal-gtk hyprpaper hypridle hyprlock wlogout
 
 # Install other useful packages
 log "Installing additional packages"
@@ -145,14 +145,14 @@ xbps-install -y "${ADDITIONAL_PKGS[@]}"
 
 # Enable essential services
 log "Linking essential services"
-# ln -sf /etc/sv/dbus		/var/service
-# ln -sf /etc/sv/udevd		/var/service
-# ln -sf /etc/sv/sshd		/var/service
-# ln -sf /etc/sv/sddm		/var/service
-# ln -sf /etc/sv/wpa_supplicant	/var/service
-# ln -sf /etc/sv/dhcpcd		/var/service
-# ln -sf /etc/sv/elogind	/var/service
-# ln -sf /etc/sv/alsa           /var/service
+ln -sf /etc/sv/dbus		        /var/service/
+ln -sf /etc/sv/udevd		    /var/service/
+ln -sf /etc/sv/sshd		        /var/service/
+ln -sf /etc/sv/sddm		        /var/service/
+ln -sf /etc/sv/wpa_supplicant	/var/service/
+ln -sf /etc/sv/dhcpcd		    /var/service/
+ln -sf /etc/sv/elogind	        /var/service/
+ln -sf /etc/sv/alsa             /var/service/
 
 
 log "Installation complete. Please reboot into your new Void Linux system."
