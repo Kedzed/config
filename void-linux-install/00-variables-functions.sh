@@ -44,7 +44,7 @@ LOCALE="en_US.UTF-8"
 KEYFILE="/boot/volume.key"
 REPO_URL="https://repo-de.voidlinux.org/current"
 BTRFS_OPTS="noatime,compress=zstd,discard=async"
-ADDITIONAL_PKGS=("tar" "bat" "btop" "vsv" "xz" "fzf" "ripgrep" "ghostty" "vim" "neovim" "font-aweome" "tealdeer" "eza" "sddm" "xorg" "elogind" "nvidia" "Thunar" "wofi" "grimshot")
+ADDITIONAL_PKGS=("bat" "btop" "vsv" "xz" "fzf" "ripgrep" "ghostty" "vim" "neovim" "font-awesome6" "tealdeer" "eza" "sddm" "xorg" "elogind" "nvidia" "Thunar" "wofi" "grimshot")
 
 # Determine partition suffix (e.g., 'p' for NVMe drives)
 if [[ "$DRIVE" =~ "nvme" ]]; then

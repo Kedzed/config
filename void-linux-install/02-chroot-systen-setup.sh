@@ -136,7 +136,7 @@ ln -s /usr/share/alsa/alsa.conf.d/99-pipewire-default.conf /etc/alsa/conf.d
 
 # Window Managers
 echo repository=https://raw.githubusercontent.com/Makrennel/hyprland-void/repository-x86_64-glibc | sudo tee /etc/xbps.d/hyprland-void.conf
-xbps-install -Sy hyprland xdg-desktop-portal-hyprland xdg-desktop-portal-gtk hyprpaper hypridle hyprlock wlogout
+xbps-install -Sy hyprland xdg-desktop-portal-hyprland xdg-desktop-portal-gtk hyprpaper hypridle hyprlock wlogout sddm elogind
 
 # Install other useful packages
 log "Installing additional packages"
@@ -145,14 +145,14 @@ xbps-install -y "${ADDITIONAL_PKGS[@]}"
 
 # Enable essential services
 log "Linking essential services"
-ln -sf /etc/sv/dbus		        /var/service/
-ln -sf /etc/sv/udevd		    /var/service/
-ln -sf /etc/sv/sshd		        /var/service/
-ln -sf /etc/sv/sddm		        /var/service/
-ln -sf /etc/sv/wpa_supplicant	/var/service/
-ln -sf /etc/sv/dhcpcd		    /var/service/
-ln -sf /etc/sv/elogind	        /var/service/
-ln -sf /etc/sv/alsa             /var/service/
+ln -s /etc/sv/dbus		        /etc/runit/runsvdir/default/
+ln -s /etc/sv/udevd		        /etc/runit/runsvdir/default/
+ln -s /etc/sv/sshd		        /etc/runit/runsvdir/default/
+ln -s /etc/sv/sddm		        /etc/runit/runsvdir/default/
+ln -s /etc/sv/wpa_supplicant	/etc/runit/runsvdir/default/
+ln -s /etc/sv/dhcpcd		    /etc/runit/runsvdir/default/
+ln -s /etc/sv/elogind	        /etc/runit/runsvdir/default/
+ln -s /etc/sv/alsa              /etc/runit/runsvdir/default/
 
 
 log "Installation complete. Please reboot into your new Void Linux system."
