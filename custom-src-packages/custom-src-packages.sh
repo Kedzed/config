@@ -37,33 +37,3 @@ then
     ./xbps-src pkg discord
     sudo xbps-install --repository hostdir/binpkgs/nonfree discord
 fi
-
-## Brave Browser Nightly
-BRAVE_EXIST=$(xbps-query -s brave-browser-nightly)
-if [ "$BRAVE_EXIST" == "" ] 
-then
-    if ! [ -d ${VOID_PKG_DIR}/void-packages/srcpkgs/brave-browser-nightly ]
-    then
-	mkdir -p ${VOID_PKG_DIR}/void-packages/srcpkgs/brave-browser-nightly
-    fi
-
-    cd "$SCRIPT_DIR"
-    cp -f ./xbps-templates/brave-browser-nightly/template ${VOID_PKG_DIR}/void-packages/srcpkgs/brave-browser-nightly/template
-    cd "${VOID_PKG_DIR}/void-packages"
-    ./xbps-src pkg brave-browser-nightly
-    sudo xbps-install --repository hostdir/binpkgs brave-browser-nightly
-else
-    cd "$SCRIPT_DIR"
-    CURRENT_BRAVE_VERSION=$(brave-browser-nightly --version | cut -d " " -f 3 | cut -c 5-)
-    TEMPLATE_BRAVE_VERSION=$(grep ^version= xbps-templates/brave-browser-nightly/template | cut -d "=" -f 2)
-    if ! [ "$CURRENT_BRAVE_VERSION" == "$TEMPLATE_BRAVE_VERSION" ]
-    then
-	cd "$SCRIPT_DIR"
-	cp -f ./xbps-templates/brave-browser-nightly/template ${VOID_PKG_DIR}/srcpkgs/brave-browser-nightly/template
-	cd "${VOID_PKG_DIR}/void-packages"
-	./xbps-src pkg brave-browser-nightly
-	sudo xbps-remove brave-browser-nightly
-	sudo xbps-install --repository hostdir/binpkgs brave-browser-nightly
-   fi
-fi
-

@@ -2,28 +2,15 @@
 #+AUTHOR: Denis Furmann
 #+DESCRIPTION: Literate config for Bash shell
 
-* BLE.SH source
-#+begin_src bash :tangle "~/.bashrc"
-  [[ $- == *i* ]] && source "$HOME/.local/share/blesh/ble.sh" --attach=none
-#+end_src
 * Prompt theme
 ** Colors definitions
 #+begin_src bash :tangle "~/.bashrc"
-COLOR_TEXT=$(tput setaf 189)   # Text
 COLOR_GREEN=$(tput setaf 150)  # Green
-COLOR_PINK=$(tput setaf 218)   # Pink
-COLOR_SKY=$(tput setaf 117)    # Sky
 COLOR_MAUVE=$(tput setaf 141)  # Mauve
-COLOR_PEACH=$(tput setaf 216)  # Peach
-COLOR_YELLOW=$(tput setaf 222) # Yellow
-COLOR_TEAL=$(tput setaf 150)   # Teal
 COLOR_RESET=$(tput sgr0)       # Reset to default color
 #+end_src
 ** Parts functions
 #+begin_src bash :tangle "~/.bashrc"
-  prompt_user_host() {
-      echo -n "${COLOR_GREEN}\u${COLOR_TEXT} on ${COLOR_SKY}\h"
-  }
   prompt_working_directory() {
       echo -n "${COLOR_MAUVE}\w"
   }
@@ -35,18 +22,26 @@ COLOR_RESET=$(tput sgr0)       # Reset to default color
             echo -n " ${COLOR_GREEN}(${branch})"
         fi
   }
-  prompt_time() {
-        echo -n "\[\033[s\033[999C\033[15D\]${COLOR_PEACH}[\t]\[\033[u\]"
-  }
 #+end_src
 ** Final prompt assembly
 #+begin_src bash :tangle "~/.bashrc"
 assemble_prompt() {
-    PS1="\n╭─$(prompt_user_host) ${COLOR_TEXT}at: $(prompt_working_directory)$(prompt_git_branch)$(prompt_time)\n${COLOR_RESET}╰─ $ "
+    PS1="$(prompt_working_directory)$(prompt_git_branch)\n${COLOR_RESET}$ "
 }
 PROMPT_COMMAND=assemble_prompt
 
 #+end_src
+
+* ENV
+
+#+begin_src bash :tangle "~/.bashrc"
+  export PATH=$PATH:~/.cargo/bin
+
+  export OPENCODE_API_KEY=sk-jUUQa2Sqmt6JOcW5WpKYszV8wZjM20Ae7e7SQHXma2CdV3RIvMAyF4gOLIPyYAAn
+#+end_src
+
+
+
 * Plugins setups
 ** FZF
 #+begin_src bash :tangle "~/.bashrc"
@@ -57,10 +52,27 @@ else
   echo "[INFO] fzf not installed!"
 fi
 #+end_src
+
 ** Fastfetch
 #+begin_src bash :tangle "~/.bashrc" 
-  fastfetch
+  if [ -f /usr/bin/fastfetch ]
+  then
+      fastfetch
+  else
+      echo "[INFO] fastfetch is not installed"
+  fi
 #+end_src
+
+** Bash-Autocompletion
+#+begin_src bash :tangle "~/.bashrc" 
+  if [ -f /usr/share/bash-completion/bash_completion ]
+  then
+      . /usr/share/bash-completion/bash_completion
+  else
+      echo "[INFO] bash-completion is not installed"
+  fi
+
+
 ** BAT
 #+begin_src bash :tangle "~/.bashrc"
   export MANPAGER="sh -c 'sed -u -e \"s/\\x1B\[[0-9;]*m//g; s/.\\x08//g\" | bat -p -lman'"
@@ -69,20 +81,13 @@ fi
 * Aliases
 #+begin_src bash :tangle "~/.bashrc"
   alias ls="eza --color=auto"
-  alias la="eza -la --color=auto --icons --group-directories-first --group"
-  alias ll="eza -l --color=auto --icons --group-directories-first --group"
-  alias xbpssu="sudo xbps-install -Su"
-  alias xbpsq="xbps-query -Rs"
-  alias xbpsi="sudo xbps-install"
+  alias ll="eza -la --color=auto --icons --group-directories-first --group"
+  alias pinstall="sudo xbps-install -Su"
+  alias pquery="xbps-query -Rs"
+  alias void-update="sudo xbps-install -Syu"
   alias ..="cd .."
   alias ...="cd ../.."
   alias ....="cd ../../.."
-  alias vi="emacs -nw"
-  alias vim="emacs"
   alias fzf="fzf --style full --preview 'bat --color=always {}' --bind 'focus:transform-header:file --brief {}'"
   alias cat="bat"
-#+end_src
-* BLE.SH load
-#+begin_src bash :tangle "~/.bashrc"
-   [[ ${BLE_VERSION-} ]] && ble-attach
 #+end_src

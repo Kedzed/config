@@ -2,7 +2,7 @@
 #+AUTHOR: Denis Furmann
 
 * Config json
-#+begin_src jsonc :tangle "~/.config/waybar/config.jsonc" :mkdirp yes
+#+begin_src json :tangle "~/.config/waybar/config.jsonc" :mkdirp yes
   // -*- mode: jsonc -*-
 {
     // "layer": "top", // Waybar at top layer

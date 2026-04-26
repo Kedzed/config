@@ -191,7 +191,7 @@ input {
     kb_layout = us,sk
     kb_variant =,qwerty
     kb_model =
-    kb_options = grp:alt_shift_toggle,ctrl:swapcaps
+    kb_options = grp:alt_shift_toggle,caps:swapescape
     kb_rules =
 
     follow_mouse = 1

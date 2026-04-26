@@ -192,13 +192,13 @@ else
 
     log "Linking essential services"
     ln -s /etc/sv/dbus		        /etc/runit/runsvdir/default/
-    ln -s /etc/sv/udevd		        /etc/runit/runsvdir/default/
     ln -s /etc/sv/sshd		        /etc/runit/runsvdir/default/
     ln -s /etc/sv/sddm		        /etc/runit/runsvdir/default/
     ln -s /etc/sv/wpa_supplicant	/etc/runit/runsvdir/default/
-    ln -s /etc/sv/dhcpcd		    /etc/runit/runsvdir/default/
+    ln -s /etc/sv/dhcpcd		/etc/runit/runsvdir/default/
     ln -s /etc/sv/elogind	        /etc/runit/runsvdir/default/
-    ln -s /etc/sv/alsa              /etc/runit/runsvdir/default/
+    ln -s /etc/sv/alsa              	/etc/runit/runsvdir/default/
+    ln -s /etc/sv/dhcpcd              	/etc/runit/runsvdir/default/
 
     log "Chroot setup complete."
 fi
