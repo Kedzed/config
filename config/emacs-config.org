@@ -160,6 +160,14 @@ VIM Keybindings
   (evil-collection-init)
   (evil-set-leader nil (kbd "C-SPC"))
   (evil-set-leader 'normal (kbd "SPC"))
+
+  ; Help Keymaps
+  (define-key evil-normal-state-map (kbd "<leader>hf") #'describe-function)
+  (define-key evil-normal-state-map (kbd "<leader>hv") #'describe-variable)
+  (define-key evil-normal-state-map (kbd "<leader>hk") #'describe-key)
+  (define-key evil-normal-state-map (kbd "<leader>ho") #'describe-symbol)
+  (define-key evil-normal-state-map (kbd "<leader>hm") #'describe-mode)
+  (define-key evil-normal-state-map (kbd "<leader>hn") #'describe-minor-mode)
 #+end_src
 
 ** DOOM Modeline
@@ -300,7 +308,7 @@ Snippets for every major mode. To <tab> expand snippet.
 #+end_src
 
 *** Marginalia
-Enable rich annotations using the Marginalia package
+ Enable rich annotations using the Marginalia package
 #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
   (unless (package-installed-p 'marginalia)
     (package-install 'marginalia)
@@ -317,13 +325,13 @@ Enable rich annotations using the Marginalia package
 
   (require 'consult)
 
-  (define-key evil-normal-state-map (kbd "<leader>ff") 'consult-fd)
-  (define-key evil-normal-state-map (kbd "<leader>fg") 'consult-ripgrep)
-  (define-key evil-normal-state-map (kbd "<leader>fr") 'consult-recent-file)
-  (define-key evil-normal-state-map (kbd "<leader>fb") 'consult-buffer)
-  (define-key evil-normal-state-map (kbd "<leader>fi") 'consult-imenu)
-  (define-key evil-normal-state-map (kbd "<leader>fh") 'consult-info)
-  (define-key evil-normal-state-map (kbd "<leader>fo") 'consult-outline)
+  (define-key evil-normal-state-map (kbd "<leader>ff") #'consult-fd)
+  (define-key evil-normal-state-map (kbd "<leader>fg") #'consult-ripgrep)
+  (define-key evil-normal-state-map (kbd "<leader>fr") #'consult-recent-file)
+  (define-key evil-normal-state-map (kbd "<leader>fb") #'consult-buffer)
+  (define-key evil-normal-state-map (kbd "<leader>fi") #'consult-imenu)
+  (define-key evil-normal-state-map (kbd "<leader>fh") #'consult-info)
+  (define-key evil-normal-state-map (kbd "<leader>fo") #'consult-outline)
 #+end_src
 
 *** Orderless
@@ -353,9 +361,8 @@ Enable rich annotations using the Marginalia package
   (require 'embark-consult)
 
   (keymap-global-set "C-." 'embark-act)
-  ;(keymap-global-set "C-;" 'embark-dwim)
   (keymap-global-set "C-'" 'embark-live)
-  (define-key evil-normal-state-map (kbd "<leader>hh") 'embark-bindings)
+  (define-key evil-normal-state-map (kbd "<leader>hh") #'embark-bindings)
 
   (add-to-list
     'display-buffer-alist
@@ -363,7 +370,7 @@ Enable rich annotations using the Marginalia package
       nil
       (window-parameters (mode-line-format . none))))
 
-  (add-hook 'embark-collect-mode-hook 'consult-preview-at-point-mode)
+  (add-hook 'embark-collect-mode-hook #'consult-preview-at-point-mode)
 #+end_src
 
 * Multiple cursors
@@ -388,7 +395,7 @@ Enable rich annotations using the Marginalia package
       (unless (mason-installed-p pkg)
         (ignore-errors (mason-install pkg)))))
 
-  (add-hook 'rust-mode-hook 'eglot-ensure)
+  (add-hook 'rust-mode-hook #'eglot-ensure)
   (with-eval-after-load 'eglot
   (add-to-list 'eglot-server-programs
                '((rust-ts-mode rust-mode) .
@@ -396,43 +403,94 @@ Enable rich annotations using the Marginalia package
 
 #+end_src
 
+** Shitty Coding Agent
+
+#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
+  (unless (package-installed-p 'pi-coding-agent)
+    (package-install 'pi-coding-agent)
+  )
+  (require 'pi-coding-agent)
+
+  (define-key evil-normal-state-map (kbd "<leader>so") #'pi-coding-agent)
+  (define-key evil-normal-state-map (kbd "<leader>st") #'pi-coding-agent-toggle)
+  (define-key evil-normal-state-map (kbd "<leader>sf") #'pi-coding-agent-fork)
+  (define-key evil-normal-state-map (kbd "<leader>sq") #'pi-coding-agent-quit)
+  (define-key evil-normal-state-map (kbd "<leader>ss") #'pi-coding-agent-send)
+  (define-key evil-normal-state-map (kbd "<leader>sm") #'pi-coding-agent-menu)
+  (define-key evil-normal-state-map (kbd "<leader>sc") #'pi-coding-agent-compact)
+#+end_src
+
+
 ** No config packages
 #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
-  (use-package htmlize :ensure t)
-  (use-package paredit :ensure t)
-  (use-package elisp-autofmt :ensure t)
-  (use-package flycheck :ensure t :config (global-flycheck-mode t))
-  (use-package beacon :ensure t :config (beacon-mode 1))
-  (use-package
-   highlight-indentation
-   :ensure t
-   :config (highlight-indentation-mode t))
-  (use-package
-   rainbow-mode
-   :ensure t
-   :diminish rainbow-mode
-   :config (rainbow-mode t))
-  (use-package
-   rainbow-delimiters
-   :ensure t
-   :hook
-   ((emacs-lisp-mode . rainbow-delimiters-mode)
-    (clojure-mode . rainbow-delimiters-mode)))
-  (use-package
-   org-bullets
-   :ensure t
-   :hook (org-mode . org-bullets-mode))
-  (use-package expand-region :ensure t :bind (("C-=" . er/expand-region)))
-  (use-package magit :ensure t)
-  (use-package json-mode :ensure t)
-  (unless (package-installed-p 'rust-mode) 
-    (package-install 'rust-mode)
-  )
+  ;; htmlize
+  (unless (package-installed-p 'htmlize)
+    (package-install 'htmlize))
+  (require 'htmlize)
 
-  (require 'rust-mode)
-  (add-hook 'rust-mode-hook
-            (lambda () (setq indent-tabs-mode nil)))
+  ;; paredit
+  (unless (package-installed-p 'paredit)
+    (package-install 'paredit))
+  (require 'paredit)
 
+  ;; elisp-autofmt
+  (unless (package-installed-p 'elisp-autofmt)
+    (package-install 'elisp-autofmt))
+  (require 'elisp-autofmt)
+
+  ;; flycheck
+  (unless (package-installed-p 'flycheck)
+    (package-install 'flycheck))
+  (require 'flycheck)
+  (global-flycheck-mode 1)
+
+  ;; beacon
+  (unless (package-installed-p 'beacon)
+    (package-install 'beacon))
+  (require 'beacon)
+  (beacon-mode 1)
+
+  ;; highlight-indentation
+  (unless (package-installed-p 'highlight-indentation)
+    (package-install 'highlight-indentation))
+  (require 'highlight-indentation)
+  (highlight-indentation-mode 1)
+
+  ;; rainbow-mode
+  (unless (package-installed-p 'rainbow-mode)
+    (package-install 'rainbow-mode))
+  (require 'rainbow-mode)
+  (diminish 'rainbow-mode)
+  (rainbow-mode 1)
+
+  ;; rainbow-delimiters
+  (unless (package-installed-p 'rainbow-delimiters)
+    (package-install 'rainbow-delimiters))
+  (require 'rainbow-delimiters)
+  (add-hook 'emacs-lisp-mode-hook #'rainbow-delimiters-mode)
+  (add-hook 'clojure-mode-hook #'rainbow-delimiters-mode)
+
+  ;; org-bullets
+  (unless (package-installed-p 'org-bullets)
+    (package-install 'org-bullets))
+  (require 'org-bullets)
+  (add-hook 'org-mode-hook #'org-bullets-mode)
+
+  ;; expand-region
+  (unless (package-installed-p 'expand-region)
+    (package-install 'expand-region))
+  (require 'expand-region)
+  (global-set-key (kbd "C-=") #'er/expand-region)
+
+  ;; magit
+  (unless (package-installed-p 'magit)
+    (package-install 'magit))
+  (require 'magit)
+
+  ;; json-mode
+  (unless (package-installed-p 'json-mode)
+    (package-install 'json-mode))
+  (require 'json-mode)
 #+end_src
 
 * Color theme
